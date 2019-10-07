@@ -1,32 +1,29 @@
-////////////////////////////////////////////////////////////////////
-//
-// File: BookServiceImpl.java
-// Created: 6/10/2019 16:18
-// Author: EAG496
-// Electrabel n.v./s.a., Regentlaan 8 Boulevard du Régent, BTW BE 0403.107.701 - 1000 Brussel/Bruxelles, Belgium.
-//
-// Proprietary Notice:
-// This software is the confidential and proprietary information of Electrabel s.a./n.v. and/or its licensors. 
-// You shall not disclose this Confidential Information to any third parties
-// and any use thereof shall be subject to the terms and conditions of use, as agreed upon with Electrabel in writing.
-//
-////////////////////////////////////////////////////////////////////
 package com.library.api.service.impl;
 
 import com.library.api.domain.Book;
+import com.library.api.exception.ResourceAlreadyExistsException;
+import com.library.api.exception.ResourceNotFoundException;
 import com.library.api.repository.BookDAO;
+import com.library.api.service.BookCollectionService;
 import com.library.api.service.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class BookServiceImpl implements BookService {
 
+    private static final String RESOURCE_NOT_FOUND_ERROR = "Book with ISBN ''{0}'' not found";
+    private static final String ISBN_ALREADY_USED_ERROR = "ISBN ''{0}'' is already used";
+
     @Autowired
     private BookDAO bookDAO;
+
+    @Autowired
+    private BookCollectionService bookCollectionService;
 
     @Override
     public List<Book> findAllBooksSortedByTitle() {
@@ -35,38 +32,39 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public boolean bookExists(Long isbn) {
-        return bookDAO.existsById(isbn);
+    public Book createBook(Book book) {
+        if(!bookDAO.existsById(book.getIsbn())) {
+            return bookDAO.save(book);
+        }
+        throw new ResourceAlreadyExistsException(MessageFormat.format(ISBN_ALREADY_USED_ERROR, book.getIsbn()));
     }
 
     @Override
-    public Book saveBook(Book book) {
-        return bookDAO.save(book);
-    }
-
-    @Override
-    public Book updateBook(long bookId, Book book) {
+    public Book updateBook(String bookId, Book book) {
         return bookDAO.findById(bookId)
                 .map(existingBook -> {
                     existingBook.setTitle(book.getTitle());
                     existingBook.setAuthor(book.getAuthor());
                     return bookDAO.save(existingBook);
-                }).orElse(null);
+                }).orElseThrow(() -> new ResourceNotFoundException(MessageFormat.format(RESOURCE_NOT_FOUND_ERROR, bookId)));
     }
 
     @Override
-    public boolean deleteBook(long bookId) {
-        Optional<Book> existingBook = bookDAO.findById(bookId);
-        if(existingBook.isPresent()) {
-            bookDAO.delete(existingBook.get());
-            return true;
+    public void deleteBook(String bookId) {
+        Optional<Book> existingBookOpt = bookDAO.findById(bookId);
+        if(existingBookOpt.isPresent()) {
+            Book existingBook = existingBookOpt.get();
+            bookCollectionService.findBookCollectionsByBook(existingBook)
+                    .forEach(bookCollection -> bookCollectionService.deleteBookFromBookCollection(bookCollection, existingBook));
+            bookDAO.delete(existingBook);
         } else {
-            return false;
+            throw new ResourceNotFoundException(MessageFormat.format(RESOURCE_NOT_FOUND_ERROR, bookId));
         }
     }
 
     @Override
-    public Book findBookById(long bookId) {
-        return bookDAO.findById(bookId).orElse(null);
+    public Book findBookById(String bookId) {
+        return bookDAO.findById(bookId)
+                .orElseThrow(() -> new ResourceNotFoundException(MessageFormat.format(RESOURCE_NOT_FOUND_ERROR, bookId)));
     }
 }

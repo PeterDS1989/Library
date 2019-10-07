@@ -1,6 +1,8 @@
 package com.library.api.service;
 
 import com.library.api.domain.Book;
+import com.library.api.exception.ResourceAlreadyExistsException;
+import com.library.api.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,38 +17,34 @@ public interface BookService {
     List<Book> findAllBooksSortedByTitle();
 
     /**
-     * Checks if the book exists by its isbn
-     * @param isbn isbn of the book
-     * @return true if it exists
-     */
-    boolean bookExists(Long isbn);
-
-    /**
-     * Saves the book
-     * @param book book to save
+     * Saves the book if it does not exist yet
+     * @param book book
      * @return the saved book entity
+     * @throws ResourceAlreadyExistsException if the book isbn is already used
      */
-    Book saveBook(Book book);
+    Book createBook(Book book);
 
     /**
      * Updates the book with the given id.
      * @param bookId book id
      * @param book book data
-     * @return updated book entity, null if bookId does not link to a book
+     * @return updated book entity
+     * @throws ResourceNotFoundException if bookId does not link to a book
      */
-    Book updateBook(long bookId, Book book);
+    Book updateBook(String bookId, Book book);
 
     /**
      * Deletes the book linked to this id
      * @param bookId book id
-     * @return true if bookId exists and was deleted, false otherwise
+     * @throws ResourceNotFoundException if bookId does not link to a book
      */
-    boolean deleteBook(long bookId);
+    void deleteBook(String bookId);
 
     /**
      * Finds the book by this id.
      * @param bookId book id
-     * @return book linked to the id, null if no book
+     * @return book linked to the id
+     * @throws ResourceNotFoundException if bookId does not link to a book
      */
-    Book findBookById(long bookId);
+    Book findBookById(String bookId);
 }

@@ -8,5 +8,5 @@ import org.springframework.stereotype.Repository;
  * Book repository interface
  */
 @Repository
-public interface BookDAO extends JpaRepository<Book, Long> {
+public interface BookDAO extends JpaRepository<Book, String> {
 }

@@ -2,6 +2,7 @@ package com.library.api.domain;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.hibernate.validator.constraints.ISBN;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -23,7 +24,8 @@ public class Book extends AuditData {
     @Id
     @Column(name = "ISBN", nullable = false)
     @NotNull(message = "ISBN must be filled in")
-    private Long isbn;
+    @ISBN(message = "Invalid ISBN format")
+    private String isbn;
 
     @Column(name = "TITLE", nullable = false)
     @NotBlank(message = "Title must be filled in")
@@ -42,11 +44,11 @@ public class Book extends AuditData {
         super();
     }
 
-    public Long getIsbn() {
+    public String getIsbn() {
         return isbn;
     }
 
-    public void setIsbn(Long isbn) {
+    public void setIsbn(String isbn) {
         this.isbn = isbn;
     }
 

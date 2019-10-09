@@ -7,11 +7,13 @@ import com.library.api.exception.ResourceNotFoundException;
 import com.library.api.repository.BookCollectionDAO;
 import com.library.api.service.BookCollectionService;
 import com.library.api.service.BookService;
+import com.library.api.service.TrieSortingService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,10 +32,12 @@ public class BookCollectionServiceImpl implements BookCollectionService {
     @Autowired
     private BookService bookService;
 
+    @Autowired
+    private TrieSortingService trieSortingService;
+
     @Override
     public List<BookCollection> findAllBookCollectionsSortedByName() {
-        //TODO sorting
-        return bookCollectionDAO.findAll();
+        return trieSortingService.sort(bookCollectionDAO.findAll(), BookCollection::getName);
     }
 
     @Override
@@ -84,6 +88,7 @@ public class BookCollectionServiceImpl implements BookCollectionService {
                 .map(existingBookCollection -> {
                     Book bookToAdd = bookService.findBookById(bookId);
                     existingBookCollection.getBooks().add(bookToAdd);
+                    existingBookCollection.setLastEditTime(LocalDateTime.now());
                     return bookCollectionDAO.save(existingBookCollection);
                 })
                 .orElseThrow(() -> new ResourceNotFoundException(MessageFormat.format(RESOURCE_NOT_FOUND_ERROR, bookCollectionId)));
@@ -102,6 +107,7 @@ public class BookCollectionServiceImpl implements BookCollectionService {
     @Override
     public BookCollection deleteBookFromBookCollection(BookCollection bookCollection, Book book) {
         bookCollection.getBooks().remove(book);
+        bookCollection.setLastEditTime(LocalDateTime.now());
         return bookCollectionDAO.save(bookCollection);
     }
 

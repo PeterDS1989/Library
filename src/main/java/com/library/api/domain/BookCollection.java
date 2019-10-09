@@ -27,7 +27,7 @@ public class BookCollection extends AuditData {
     @Id
     @GeneratedValue(generator = "BOOK_COLLECTION_ID_GEN")
     @SequenceGenerator(name = "BOOK_COLLECTION_ID_GEN",
-        sequenceName = "BOOK_COLLECTION_ID_SEQ")
+        sequenceName = "BOOK_COLLECTION_ID_SEQ", allocationSize = 1)
     @Column(name = "BOOK_COLLECTION_ID")
     private Long id;
 

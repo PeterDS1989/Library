@@ -16,12 +16,12 @@ package com.library.api.controller;
 import com.library.api.domain.Book;
 import com.library.api.domain.BookCollection;
 import com.library.api.service.BookCollectionService;
+import com.library.api.service.TrieSortingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,6 +33,9 @@ public class BookCollectionRestController extends AbstractRestController {
 
     @Autowired
     private BookCollectionService bookCollectionService;
+
+    @Autowired
+    private TrieSortingService trieSortingService;
 
     @GetMapping
     public List<BookCollection> getBookCollections() {
@@ -63,19 +66,16 @@ public class BookCollectionRestController extends AbstractRestController {
 
     @GetMapping("/{bookCollectionId}/books")
     public List<Book> getBooksFromBookCollection(@PathVariable Long bookCollectionId) {
-        //TODO SORT
-        return new ArrayList<>(bookCollectionService.findBookCollectionById(bookCollectionId).getBooks());
+        return trieSortingService.sort(bookCollectionService.findBookCollectionById(bookCollectionId).getBooks(), Book::getTitle);
     }
 
     @PutMapping("/{bookCollectionId}/books/{bookId}")
     public List<Book> addBookToBookCollection(@PathVariable Long bookCollectionId, @PathVariable String bookId) {
-        //TODO SORT
-        return new ArrayList<>(bookCollectionService.addBookToBookCollection(bookCollectionId, bookId).getBooks());
+        return trieSortingService.sort(bookCollectionService.addBookToBookCollection(bookCollectionId, bookId).getBooks(), Book::getTitle);
     }
 
     @DeleteMapping("/{bookCollectionId}/books/{bookId}")
     public List<Book> deleteBookFromCollection(@PathVariable Long bookCollectionId, @PathVariable String bookId) {
-        //TODO SORT
-        return new ArrayList<>(bookCollectionService.deleteBookFromBookCollection(bookCollectionId, bookId).getBooks());
+        return trieSortingService.sort(bookCollectionService.deleteBookFromBookCollection(bookCollectionId, bookId).getBooks(), Book::getTitle);
     }
 }

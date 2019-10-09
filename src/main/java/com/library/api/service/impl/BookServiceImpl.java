@@ -6,6 +6,7 @@ import com.library.api.exception.ResourceNotFoundException;
 import com.library.api.repository.BookDAO;
 import com.library.api.service.BookCollectionService;
 import com.library.api.service.BookService;
+import com.library.api.service.TrieSortingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,10 +26,12 @@ public class BookServiceImpl implements BookService {
     @Autowired
     private BookCollectionService bookCollectionService;
 
+    @Autowired
+    private TrieSortingService trieSortingService;
+
     @Override
     public List<Book> findAllBooksSortedByTitle() {
-        //TODO sorting
-        return bookDAO.findAll();
+        return trieSortingService.sort(bookDAO.findAll(), Book::getTitle);
     }
 
     @Override

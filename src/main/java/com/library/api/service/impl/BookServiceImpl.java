@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class BookServiceImpl implements BookService {
@@ -44,25 +43,18 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Book updateBook(String bookId, Book book) {
-        return bookDAO.findById(bookId)
-                .map(existingBook -> {
-                    existingBook.setTitle(book.getTitle());
-                    existingBook.setAuthor(book.getAuthor());
-                    return bookDAO.save(existingBook);
-                }).orElseThrow(() -> new ResourceNotFoundException(MessageFormat.format(RESOURCE_NOT_FOUND_ERROR, bookId)));
+        Book existingBook = findBookById(bookId);
+        existingBook.setTitle(book.getTitle());
+        existingBook.setAuthor(book.getAuthor());
+        return bookDAO.save(existingBook);
     }
 
     @Override
     public void deleteBook(String bookId) {
-        Optional<Book> existingBookOpt = bookDAO.findById(bookId);
-        if(existingBookOpt.isPresent()) {
-            Book existingBook = existingBookOpt.get();
-            bookCollectionService.findBookCollectionsByBook(existingBook)
-                    .forEach(bookCollection -> bookCollectionService.deleteBookFromBookCollection(bookCollection, existingBook));
-            bookDAO.delete(existingBook);
-        } else {
-            throw new ResourceNotFoundException(MessageFormat.format(RESOURCE_NOT_FOUND_ERROR, bookId));
-        }
+        Book existingBook = findBookById(bookId);
+        bookCollectionService.findBookCollectionsByBook(existingBook)
+                .forEach(bookCollection -> bookCollectionService.deleteBookFromBookCollection(bookCollection, existingBook));
+        bookDAO.delete(existingBook);
     }
 
     @Override

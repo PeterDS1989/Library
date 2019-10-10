@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Implementation of {@link BookCollectionService}
@@ -61,47 +60,35 @@ public class BookCollectionServiceImpl implements BookCollectionService {
 
     @Override
     public BookCollection updateBookCollection(Long bookCollectionId, BookCollection bookCollection) {
-        return bookCollectionDAO.findById(bookCollectionId)
-                .map(existingBookCollection -> {
-                    if(!StringUtils.equals(bookCollection.getName(), existingBookCollection.getName())
-                            && bookCollectionDAO.existsByName(bookCollection.getName())) {
-                        throw new ResourceAlreadyExistsException(MessageFormat.format(NAME_ALREADY_USED_ERROR, bookCollection.getName()));
-                    }
-                    existingBookCollection.setName(bookCollection.getName());
-                    return bookCollectionDAO.save(existingBookCollection);
-                }).orElseThrow(() -> new ResourceNotFoundException(MessageFormat.format(RESOURCE_NOT_FOUND_ERROR, bookCollectionId)));
+        BookCollection existingBookCollection = findBookCollectionById(bookCollectionId);
+        if(!StringUtils.equals(bookCollection.getName(), existingBookCollection.getName())
+                && bookCollectionDAO.existsByName(bookCollection.getName())) {
+            throw new ResourceAlreadyExistsException(MessageFormat.format(NAME_ALREADY_USED_ERROR, bookCollection.getName()));
+        }
+        existingBookCollection.setName(bookCollection.getName());
+        return bookCollectionDAO.save(existingBookCollection);
     }
 
     @Override
     public void deleteBookCollection(Long bookCollectionId) {
-        Optional<BookCollection> existingBookCollection = bookCollectionDAO.findById(bookCollectionId);
-        if(existingBookCollection.isPresent()) {
-            bookCollectionDAO.delete(existingBookCollection.get());
-        } else {
-            throw new ResourceNotFoundException(MessageFormat.format(RESOURCE_NOT_FOUND_ERROR, bookCollectionId));
-        }
+        BookCollection existingBookCollection = findBookCollectionById(bookCollectionId);
+        bookCollectionDAO.delete(existingBookCollection);
     }
 
     @Override
     public BookCollection addBookToBookCollection(Long bookCollectionId, String bookId) {
-        return bookCollectionDAO.findById(bookCollectionId)
-                .map(existingBookCollection -> {
-                    Book bookToAdd = bookService.findBookById(bookId);
-                    existingBookCollection.getBooks().add(bookToAdd);
-                    existingBookCollection.setLastEditTime(LocalDateTime.now());
-                    return bookCollectionDAO.save(existingBookCollection);
-                })
-                .orElseThrow(() -> new ResourceNotFoundException(MessageFormat.format(RESOURCE_NOT_FOUND_ERROR, bookCollectionId)));
+        BookCollection existingBookCollection = findBookCollectionById(bookCollectionId);
+        Book bookToAdd = bookService.findBookById(bookId);
+        existingBookCollection.getBooks().add(bookToAdd);
+        existingBookCollection.setLastEditTime(LocalDateTime.now());
+        return bookCollectionDAO.save(existingBookCollection);
     }
 
     @Override
     public BookCollection deleteBookFromBookCollection(Long bookCollectionId, String bookId) {
-        return bookCollectionDAO.findById(bookCollectionId)
-                .map(existingBookCollection -> {
-                    Book bookToRemove = bookService.findBookById(bookId);
-                    return deleteBookFromBookCollection(existingBookCollection, bookToRemove);
-                })
-                .orElseThrow(() -> new ResourceNotFoundException(MessageFormat.format(RESOURCE_NOT_FOUND_ERROR, bookCollectionId)));
+        BookCollection existingBookCollection = findBookCollectionById(bookCollectionId);
+        Book bookToRemove = bookService.findBookById(bookId);
+        return deleteBookFromBookCollection(existingBookCollection, bookToRemove);
     }
 
     @Override
@@ -110,6 +97,5 @@ public class BookCollectionServiceImpl implements BookCollectionService {
         bookCollection.setLastEditTime(LocalDateTime.now());
         return bookCollectionDAO.save(bookCollection);
     }
-
 
 }

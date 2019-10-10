@@ -1,16 +1,3 @@
-////////////////////////////////////////////////////////////////////
-//
-// File: BookCollectionController.java
-// Created: 7/10/2019 8:05
-// Author: EAG496
-// Electrabel n.v./s.a., Regentlaan 8 Boulevard du Régent, BTW BE 0403.107.701 - 1000 Brussel/Bruxelles, Belgium.
-//
-// Proprietary Notice:
-// This software is the confidential and proprietary information of Electrabel s.a./n.v. and/or its licensors. 
-// You shall not disclose this Confidential Information to any third parties
-// and any use thereof shall be subject to the terms and conditions of use, as agreed upon with Electrabel in writing.
-//
-////////////////////////////////////////////////////////////////////
 package com.library.api.controller;
 
 import com.library.api.domain.Book;
